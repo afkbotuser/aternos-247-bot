@@ -2,31 +2,41 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 const app = express();
 
-// 1. Keep-Alive Web Server
-app.get('/', (req, res) => res.send('Bot is Online!'));
-app.listen(3000, () => console.log('Web server ready.'));
+app.get('/', (req, res) => res.send('Bot is Healthy!'));
+app.listen(3000);
 
-// 2. Bot Configuration
 function createBot() {
     const bot = mineflayer.createBot({
-        host: 'primesmpseasons.aternos.me', // Change this
+        host: 'primesmpseasons.aternos.me', 
         port: 25565,
         username: 'AFK_Bot',
-        version: '1.20.1'               // Change to your version
+        version: '1.20.1',
+        hideErrors: true // This prevents some crashes
     });
 
-    bot.on('login', () => console.log('Bot joined the server!'));
+    bot.on('login', () => console.log('Bot joined!'));
 
-    // Anti-AFK (Jumps every 1 minute)
+    // Anti-AFK
     setInterval(() => {
-        bot.setControlState('jump', true);
-        setTimeout(() => bot.setControlState('jump', false), 500);
+        if (bot.entity) {
+            bot.setControlState('jump', true);
+            setTimeout(() => bot.setControlState('jump', false), 500);
+        }
     }, 60000);
 
-    bot.on('error', (err) => console.log('Error:', err));
-    bot.on('end', () => {
-        console.log('Disconnected. Reconnecting in 5s...');
-        setTimeout(createBot, 5000);
+    // CRITICAL: Better Reconnect
+    bot.on('end', (reason) => {
+        console.log('Disconnected:', reason);
+        setTimeout(createBot, 30000); // Wait 30 seconds before trying again
+    });
+
+    bot.on('error', (err) => {
+        if (err.code === 'ECONNREFUSED') {
+            console.log('Server is Offline. Retrying in 1 minute...');
+            setTimeout(createBot, 60000);
+        } else {
+            console.log('Error:', err);
+        }
     });
 }
 
