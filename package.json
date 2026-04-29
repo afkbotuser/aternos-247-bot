@@ -1,7 +1,6 @@
 {
   "name": "aternos-bot",
   "version": "1.0.0",
-  "description": "24/7 Bot",
   "main": "index.js",
   "dependencies": {
     "mineflayer": "^4.20.0",
